@@ -1,0 +1,150 @@
+{% extends 'main/base.html' %}
+
+{% block content %}
+    <header>
+        <div>
+            <h2>لوحة القيادة</h2>
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+            <p style="color: var(--gray-text);">نظرة عامة على تحليل البيانات</p>
+            
+        </div>
+    </header>
+
+    <div class="stats-grid">
+        <div class="card">
+            <h3>{{ total_count }}</h3>
+            <p style="color: var(--gray-text);">إجمالي الاستفسارات المجمعة</p>
+        </div>
+        <div class="card">
+            <h3>{{ clusters.count }}</h3>
+            <p style="color: var(--gray-text);">عدد المواضيع (Clusters)</p>
+        </div>
+    </div>
+
+    <div class="charts-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-bottom: 30px;">
+    
+         <div class="card">
+                <h3 style="font-size: 18px; margin-bottom: 15px;">📊 مصادر البلاغات</h3>
+                <div style="height: 250px; position: relative;">
+                <canvas id="sourcesChart"></canvas>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3 style="font-size: 18px; margin-bottom: 15px;">📈 نشاط المشاكل (آخر 7 أيام)</h3>
+        <div style="height: 250px; position: relative;">
+            <canvas id="trendChart"></canvas>
+        </div>
+    </div>
+    </div>
+
+    <div class="card">
+        <h3>أبرز المشاكل المكتشفة</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>المشكلة</th>
+                    <th>التكرار</th>
+                    <th>المصدر</th>
+                    <th>الثقة</th>
+                    <th>الإجراء</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in clusters %}
+                <tr>
+                    <td>{{ item.title }}</td>
+                    <td>{{ item.count }}</td>
+                    <td><span class="badge badge-blue">{{ item.source }}</span></td>
+                    <td>
+    <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 12px; font-weight: bold; width: 30px;">{{ item.confidence }}%</span>
+        <div style="flex: 1; height: 6px; background: #eee; border-radius: 10px; min-width: 60px;">
+            <div style="width: {{ item.confidence }}%; height: 100%; border-radius: 10px; 
+                        background: {% if item.confidence > 80 %}#00b894{% elif item.confidence > 60 %}#fdcb6e{% else %}#ff7675{% endif %};">
+            </div>
+        </div>
+    </div>
+</td>
+                    <td>
+                        <a href="{% url 'dashboard:generator' %}?id={{ item.id }}" class="action-btn">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> توليد حل
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" style="text-align: center;">لا توجد بيانات.. أضفها من لوحة الأدمن</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+    // إعدادات مشتركة للألوان
+    Chart.defaults.color = '#666';
+    Chart.defaults.font.family = 'Tajawal';
+
+    // 1. رسم بياني المصادر (Doughnut)
+    const ctxSources = document.getElementById('sourcesChart').getContext('2d');
+    new Chart(ctxSources, {
+        type: 'doughnut',
+        data: {
+            labels: ['تويتر', 'شات بوت', 'مركز الاتصال', 'الإيميل'],
+            datasets: [{
+                data: [45, 25, 20, 10], // أرقام وهمية حالياً
+                backgroundColor: [
+                    '#6c5ce7', // بنفسجي غامق
+                    '#00cec9', // تركوازي
+                    '#fd79a8', // وردي
+                    '#ffeaa7'  // أصفر
+                ],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'right', labels: { font: { size: 12 } } }
+            }
+        }
+    });
+
+    // 2. رسم بياني الترند (Line)
+    const ctxTrend = document.getElementById('trendChart').getContext('2d');
+    
+    // إنشاء تدرج لوني للخلفية
+    let gradient = ctxTrend.createLinearGradient(0, 0, 0, 400);
+    gradient.addColorStop(0, 'rgba(108, 92, 231, 0.5)'); // لون البداية
+    gradient.addColorStop(1, 'rgba(108, 92, 231, 0.0)'); // لون النهاية
+
+    new Chart(ctxTrend, {
+        type: 'line',
+        data: {
+            labels: ['السبت', 'الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة'],
+            datasets: [{
+                label: 'عدد الشكاوى',
+                data: [12, 19, 15, 25, 22, 30, 45],
+                borderColor: '#6c5ce7',
+                backgroundColor: gradient,
+                fill: true,
+                tension: 0.4, // لجعل الخط منحني وناعم
+                pointRadius: 4,
+                pointBackgroundColor: '#fff',
+                pointBorderColor: '#6c5ce7'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, grid: { color: '#f0f0f0' } },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+</script>
+{% endblock %}

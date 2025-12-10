@@ -1,0 +1,115 @@
+{% extends 'main/base.html' %}
+
+{% block content %}
+<div class="workspace">
+    <div class="panel">
+        <div style="margin-bottom: 20px;">
+            <span class="badge badge-blue">تحليل السياق</span>
+            <h3 style="margin-top: 10px; line-height: 1.4;">{{ cluster.title|default:"اختر مشكلة من اللوحة الرئيسية" }}</h3>
+        </div>
+
+        <div style="margin-bottom: 25px; background: #f8f9fe; padding: 15px; border-radius: 12px;">
+            <h5 style="color: var(--text-secondary); margin-bottom: 10px;">نبرة المستخدمين (Sentiment)</h5>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <span style="font-size: 24px;">😠</span>
+                <div style="flex: 1; height: 8px; background: #eee; border-radius: 5px;">
+                    <div style="width: 75%; height: 100%; background: #ff7675; border-radius: 5px;"></div>
+                </div>
+                <span style="font-size: 14px; font-weight: bold; color: #ff7675;">غاضب (75%)</span>
+            </div>
+        </div>
+
+        <h5 style="color: var(--text-secondary); margin-bottom: 10px;">أبرز الكلمات المتكررة</h5>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px;">
+            <span class="badge" style="background: #e3f2fd; color: #1976d2;">#نفاذ_الوطني</span>
+            <span class="badge" style="background: #e3f2fd; color: #1976d2;">#تسجيل_دخول</span>
+            <span class="badge" style="background: #ffebee; color: #c62828;">#خطأ_403</span>
+            <span class="badge" style="background: #e3f2fd; color: #1976d2;">#تطبيق_أبشر</span>
+        </div>
+        
+        <h5 style="color: var(--text-secondary); margin-bottom: 10px;">عينات من الرسائل:</h5>
+        <div style="overflow-y: auto; flex: 1; max-height: 300px;">
+            <div class="chat-bubble">"ياخي لي ساعة أحاول اسوي نسيت كلمة المرور وما يوصلني كود"</div>
+            <div class="chat-bubble">"النظام معلق يعطيني خطأ غريب لما أحاول أدخل"</div>
+        </div>
+    </div>
+
+    <div class="panel" style="border-color: var(--primary-color); position: relative; display: flex; flex-direction: column;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <i class="fa-solid fa-wand-magic-sparkles" style="color: var(--primary-color); font-size: 20px;"></i>
+                <h4>المقترح الذكي (Generative AI)</h4>
+            </div>
+            <button class="action-btn" onclick="simulateTyping()">
+                <i class="fa-solid fa-rotate-right"></i> إعادة توليد
+            </button>
+        </div>
+        
+        <textarea id="ai-response" spellcheck="false" 
+            style="flex: 1; width: 100%; min-height: 350px; padding: 20px; border: 1px solid #ddd; border-radius: 12px; resize: none; font-size: 16px; line-height: 1.8; background-color: #fff; margin-bottom: 15px;"
+            placeholder="جارِ تحليل المشكلة وتوليد الحل المناسب..."></textarea>
+        
+        <div style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px; background: #f9f9f9; padding: 10px; border-radius: 8px; border: 1px dashed #ddd;">
+            <span style="font-size: 13px; color: var(--text-secondary); font-weight: bold;">
+                <i class="fa-solid fa-language" style="color: var(--primary-color);"></i> جاهز للعرض باللغات:
+            </span>
+            <div style="display: flex; gap: 6px;">
+                {% if cluster %}
+                    {% for lang in cluster.supported_languages %}
+                    <span title="{{ lang.name }}" style="font-size: 12px; background: #fff; border: 1px solid #ddd; padding: 4px 10px; border-radius: 20px; cursor: help; display: flex; align-items: center; gap: 5px;">
+                        {{ lang.flag }} {{ lang.code }}
+                    </span>
+                    {% endfor %}
+                {% else %}
+                    <span style="font-size: 12px; background: #fff; border: 1px solid #ddd; padding: 4px 10px; border-radius: 20px;">🇸🇦 AR</span>
+                    <span style="font-size: 12px; background: #fff; border: 1px solid #ddd; padding: 4px 10px; border-radius: 20px;">🇺🇸 EN</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+            <button class="action-btn" style="background: #fff; color: #333 !important; border: 1px solid #ddd;" onclick="alert('سيتم ترجمة الحل إلى الإنجليزية...')">
+                <i class="fa-solid fa-globe"></i> ترجمة الحل
+            </button>
+
+            <button class="action-btn" style="background: #eee; color: #333 !important;" onclick="alert('تم النسخ!')">نسخ النص</button>
+            
+            <button class="action-btn" onclick="alert('تم اعتماد الحل وإضافته للمكتبة!')">
+                <i class="fa-solid fa-check"></i> اعتماد ونشر
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const solutionText = `مرحباً بك،
+نعتذر عن الصعوبة التي تواجهها في الدخول.
+بناءً على تحليل الخطأ (403)، يرجى اتباع الخطوات التالية لحل المشكلة:
+
+1. تأكد من إيقاف أي برامج VPN قيد التشغيل.
+2. حاول الدخول باستخدام متصفح مختلف (مثل Chrome أو Edge).
+3. تأكد من تحديث تطبيق "نفاذ" لأخر إصدار.
+
+إذا استمرت المشكلة، يرجى تزويدنا برقم الهوية وسنقوم برفع تذكرة تقنية فوراً.`;
+
+    const textarea = document.getElementById('ai-response');
+    
+    function simulateTyping() {
+        textarea.value = "";
+        textarea.setAttribute('placeholder', 'جارِ كتابة الحل...');
+        let i = 0;
+        const speed = 25; 
+
+        function type() {
+            if (i < solutionText.length) {
+                textarea.value += solutionText.charAt(i);
+                i++;
+                setTimeout(type, speed);
+            }
+        }
+        setTimeout(type, 500);
+    }
+
+    window.onload = simulateTyping;
+</script>
+{% endblock %}
