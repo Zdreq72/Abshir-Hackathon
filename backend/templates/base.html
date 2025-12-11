@@ -1,0 +1,81 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solution Hub | هاكاثون أبشر</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'main/css/style.css' %}">
+
+    <style>
+        body { font-family: 'Cairo', sans-serif; background-color: #f8f9fa; }
+        a { text-decoration: none !important; }
+
+        /* تنسيق النافبار العلوي (للصفحة العامة) */
+        .public-navbar {
+            background-color: #006c35;
+            padding: 1rem 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .public-navbar .brand { color: white; font-weight: bold; font-size: 1.5rem; }
+        .public-navbar .btn-staff {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.4);
+            border-radius: 20px;
+            padding: 5px 20px;
+            transition: 0.3s;
+        }
+        .public-navbar .btn-staff:hover { background: white; color: #006c35; }
+    </style>
+</head>
+<body>
+
+    {% if 'dashboard' in request.path %}
+        <nav class="sidebar">
+            <div class="logo">
+                <i class="fa-solid fa-layer-group"></i>
+                <span>Solution Hub</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="{% url 'dashboard:home' %}"><i class="fa-solid fa-chart-pie"></i> <span>لوحة القيادة</span></a></li>
+                <li><a href="{% url 'main:submit_ticket' %}"><i class="fa-solid fa-headset"></i> <span>تجربة المساعد الذكي</span></a></li>
+                <li><a href="{% url 'dashboard:generator' %}"><i class="fa-solid fa-wand-magic-sparkles"></i> <span>مولد الحلول</span></a></li>
+                <li><a href="{% url 'dashboard:library' %}"><i class="fa-solid fa-book"></i> <span>مكتبة الحلول</span></a></li>
+                <li><a href="{% url 'dashboard:approval_queue' %}"><i class="fa-solid fa-list-check"></i> <span>مراجعة البلاغات</span></a></li>
+                
+                <li style="margin-top: 50px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;">
+                    <a href="{% url 'main:home' %}" class="text-danger"><i class="fa-solid fa-right-from-bracket"></i> <span>خروج للرئيسية</span></a>
+                </li>
+            </ul>
+        </nav>
+
+        <div class="main-content">
+
+    {% else %}
+        <nav class="public-navbar">
+            <div class="container d-flex justify-content-between align-items-center">
+                <a href="/" class="brand">
+                    <i class="fa-solid fa-layer-group me-2"></i> Solution Hub
+                </a>
+                <a href="{% url 'dashboard:home' %}" class="btn-staff">
+                    <i class="fa-solid fa-user-tie me-2"></i> دخول الموظفين
+                </a>
+            </div>
+        </nav>
+
+        <div class="container">
+    {% endif %}
+
+        {% block content %}
+        {% endblock %}
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

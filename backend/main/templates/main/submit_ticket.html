@@ -1,0 +1,214 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    :root { --primary-green: #006c35; --light-green: #e9f5ec; }
+    
+    .chat-container {
+        max-width: 700px;
+        margin: 2rem auto;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+        overflow: hidden;
+        min-height: 500px;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .chat-header {
+        background: var(--primary-green);
+        color: white;
+        padding: 20px;
+        text-align: center;
+    }
+
+    .chat-body {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+        background: #f8f9fa;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    /* رسائل الشات */
+    .message {
+        max-width: 80%;
+        padding: 15px;
+        border-radius: 15px;
+        position: relative;
+        animation: fadeIn 0.3s ease;
+    }
+    
+    .bot-msg {
+        align-self: flex-start;
+        background: white;
+        border-bottom-left-radius: 2px;
+        border: 1px solid #e0e0e0;
+        color: #333;
+    }
+    
+    .user-msg {
+        align-self: flex-end;
+        background: var(--primary-green);
+        color: white;
+        border-bottom-right-radius: 2px;
+    }
+
+    /* منطقة الكتابة */
+    .input-area {
+        padding: 20px;
+        background: white;
+        border-top: 1px solid #eee;
+    }
+
+    /* أزرار التقييم */
+    .feedback-actions {
+        display: none; /* مخفي افتراضياً */
+        justify-content: center;
+        gap: 10px;
+        margin-top: 10px;
+    }
+
+    .loader {
+        display: none;
+        text-align: center;
+        padding: 10px;
+        color: var(--primary-green);
+    }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+
+<div class="chat-container">
+    <div class="chat-header">
+        <h4 class="m-0 fw-bold"><i class="fa-solid fa-robot me-2"></i> المساعد الذكي</h4>
+        <small>مساعدك الآلي لحل مشاكل أبشر</small>
+    </div>
+
+    <div class="chat-body" id="chatBox">
+        <div class="message bot-msg">
+            <i class="fa-solid fa-headset me-2 text-success"></i>
+            أهلاً بك في دعم أبشر الذكي. كيف يمكنني خدمتك اليوم؟
+        </div>
+    </div>
+
+    <div class="loader" id="loader">
+        <i class="fa-solid fa-circle-notch fa-spin fa-2x"></i>
+        <p class="small">جاري التحليل...</p>
+    </div>
+
+    <div class="input-area" id="inputSection">
+        <form id="ticketForm" class="d-flex gap-2">
+            {% csrf_token %}
+            <input type="hidden" name="ticket_id" id="ticketId">
+            <input type="text" name="user_name" class="form-control" placeholder="اسمك (اختياري)" style="width: 30%;">
+            <input type="text" name="description" id="descInput" class="form-control" placeholder="اكتب مشكلتك هنا..." required>
+            <button type="submit" class="btn btn-success"><i class="fa-regular fa-paper-plane"></i></button>
+        </form>
+
+        <div class="feedback-actions" id="feedbackSection">
+            <button onclick="handleFeedback('solved')" class="btn btn-outline-success btn-sm rounded-pill">
+                <i class="fa-solid fa-check"></i> انحلت المشكلة
+            </button>
+            <button onclick="handleFeedback('retry')" class="btn btn-outline-danger btn-sm rounded-pill">
+                <i class="fa-solid fa-rotate-right"></i> لم يعجبني الحل (حاول مرة أخرى)
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const form = document.getElementById('ticketForm');
+    const chatBox = document.getElementById('chatBox');
+    const loader = document.getElementById('loader');
+    const feedbackSection = document.getElementById('feedbackSection');
+    const ticketIdInput = document.getElementById('ticketId');
+    const descInput = document.getElementById('descInput');
+    const inputSection = document.getElementById('inputSection');
+
+    // 1. عند إرسال النموذج (لأول مرة)
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(form);
+        const userText = formData.get('description');
+
+        // إضافة رسالة المستخدم للشات
+        addMessage(userText, 'user-msg');
+        
+        // إخفاء الفورم وإظهار اللودر
+        form.style.display = 'none';
+        loader.style.display = 'block';
+
+        // إرسال للباك اند
+        fetch('', {
+            method: 'POST',
+            body: formData,
+            headers: {'X-CSRFToken': '{{ csrf_token }}'}
+        })
+        .then(response => response.json())
+        .then(data => {
+            loader.style.display = 'none';
+            
+            if (data.status === 'success') {
+                ticketIdInput.value = data.ticket_id; // حفظ رقم التذكرة للمتابعة
+                addMessage(data.solution, 'bot-msg');
+                feedbackSection.style.display = 'flex'; // إظهار أزرار التقييم
+            }
+        });
+    });
+
+    // 2. التعامل مع التقييم (إعادة المحاولة)
+    function handleFeedback(action) {
+        if (action === 'solved') {
+            addMessage('سعدنا بخدمتك! تم إغلاق التذكرة.', 'bot-msg');
+            feedbackSection.style.display = 'none';
+            setTimeout(() => location.reload(), 3000); // تحديث الصفحة بعد 3 ثواني
+        } 
+        else if (action === 'retry') {
+            // إضافة رسالة المستخدم
+            addMessage('لم يفدني هذا الحل، حاول مرة أخرى.', 'user-msg');
+            feedbackSection.style.display = 'none';
+            loader.style.display = 'block';
+
+            // إرسال طلب المحاولة للباك اند
+            const formData = new FormData();
+            formData.append('ticket_id', ticketIdInput.value);
+
+            fetch('', {
+                method: 'POST',
+                body: formData,
+                headers: {'X-CSRFToken': '{{ csrf_token }}'}
+            })
+            .then(response => response.json())
+            .then(data => {
+                loader.style.display = 'none';
+
+                if (data.status === 'escalated') {
+                    // السيناريو: وصل 3 محاولات
+                    addMessage(data.message, 'bot-msg');
+                    inputSection.innerHTML = '<div class="alert alert-warning m-3 text-center">تم رفع الطلب للدعم الفني</div>';
+                } else {
+                    // السيناريو: محاولة جديدة
+                    addMessage(data.solution, 'bot-msg');
+                    feedbackSection.style.display = 'flex';
+                }
+            });
+        }
+    }
+
+    // دالة مساعدة لإضافة الرسائل
+    function addMessage(text, className) {
+        const div = document.createElement('div');
+        div.className = `message ${className}`;
+        // تحويل الأسطر الجديدة لـ HTML breaks
+        div.innerHTML = text.replace(/\n/g, '<br>');
+        chatBox.appendChild(div);
+        chatBox.scrollTop = chatBox.scrollHeight; // النزول لآخر رسالة
+    }
+</script>
+{% endblock %}
