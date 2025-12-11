@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid p-4">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold" style="color: #004d26;">قائمة مراجعة البلاغات</h2>
+            <p class="text-muted">مراجعة المشاكل المجمعة من المستفيدين قبل اعتمادها في النظام</p>
+        </div>
+        <span class="badge bg-warning text-dark px-3 py-2 fs-6 rounded-pill">
+            <i class="fa-solid fa-clock me-2"></i> قيد الانتظار: {{ clusters.count }}
+        </span>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="card-header bg-white p-3 border-bottom">
+            <h5 class="mb-0 fw-bold text-success"><i class="fa-solid fa-list-check me-2"></i> المشاكل المكتشفة</h5>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead style="background-color: #f8f9fa;">
+                    <tr>
+                        <th class="py-3 px-4">السؤال العام (ملخص المشكلة)</th>
+                        <th>التصنيف</th>
+                        <th class="text-center">عدد الأسئلة</th>
+                        <th>درجة الأهمية</th>
+                        <th class="text-center" style="width: 200px;">الإجراء</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in clusters %}
+                    <tr>
+                        <td class="px-4">
+                            <div class="fw-bold text-dark">{{ item.title }}</div>
+                            <small class="text-muted">{{ item.ai_summary|truncatewords:8 }}</small>
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark border">{{ item.category }}</span>
+                        </td>
+                        <td class="text-center">
+                            <span class="fw-bold fs-5 text-success">{{ item.num_tickets }}</span>
+                        </td>
+                        <td>
+                            {% if item.num_tickets > 10 %}
+                                <span class="badge bg-danger">عالية جداً 🔥</span>
+                            {% elif item.num_tickets > 5 %}
+                                <span class="badge bg-warning text-dark">متوسطة ⚠️</span>
+                            {% else %}
+                                <span class="badge bg-success">عادية 🟢</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <form method="POST" class="d-flex gap-2 justify-content-center">
+                                {% csrf_token %}
+                                <input type="hidden" name="cluster_id" value="{{ item.id }}">
+                                
+                                <button type="submit" name="action" value="approve" class="btn btn-success btn-sm rounded-pill px-3" title="اعتماد">
+                                    <i class="fa-solid fa-check"></i>
+                                </button>
+                                
+                                <button type="submit" name="action" value="reject" class="btn btn-outline-danger btn-sm rounded-pill px-3" title="رفض وحذف">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5">
+                            <i class="fa-solid fa-clipboard-check fa-3x text-muted mb-3"></i>
+                            <p class="text-muted fw-bold">رائع! لا توجد بلاغات معلقة للمراجعة.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

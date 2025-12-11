@@ -3,146 +3,212 @@
 
 {% block content %}
 <style>
-    /* تنسيق الخلفية لتكون متناسقة */
-    .content-wrapper {
-        background-color: #f8f9fa;
-        min-height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 2rem;
-    }
-
-    /* بطاقة الفورم */
-    .ticket-card {
+    :root { --primary-green: #006c35; --light-green: #e9f5ec; }
+    
+    .chat-container {
+        max-width: 700px;
+        margin: 2rem auto;
         background: white;
         border-radius: 20px;
-        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 10px 40px rgba(0,0,0,0.08);
         overflow: hidden;
-        border: none;
-        width: 100%;
-        max-width: 600px; /* عرض مثالي حتى لا تكون عريضة جداً */
-        transform: translateY(-20px); /* رفعة بسيطة للأعلى */
-    }
-
-    /* رأس البطاقة - تصميم أبشر الحديث */
-    .card-header-custom {
-        background: linear-gradient(135deg, #006c35 0%, #004d26 100%);
-        padding: 3rem 2rem;
-        text-align: center;
-        color: white;
-        position: relative;
-    }
-
-    /* الدائرة خلف الأيقونة */
-    .icon-circle {
-        background: rgba(255, 255, 255, 0.15);
-        width: 80px;
-        height: 80px;
-        border-radius: 50%;
+        min-height: 500px;
         display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 1.5rem;
-        backdrop-filter: blur(5px);
+        flex-direction: column;
     }
-
-    /* تحسين حقول الإدخال */
-    .form-control {
-        border: 2px solid #e9ecef;
-        border-radius: 12px;
-        padding: 12px 15px;
-        transition: all 0.3s;
-        background-color: #fdfdfd;
-    }
-
-    .form-control:focus {
-        border-color: #006c35;
-        box-shadow: 0 0 0 4px rgba(0, 108, 53, 0.1);
-        background-color: #fff;
-    }
-
-    .form-label {
-        font-weight: 600;
-        color: #495057;
-        margin-bottom: 8px;
-    }
-
-    /* زر الإرسال */
-    .btn-submit {
-        background: #006c35;
+    
+    .chat-header {
+        background: var(--primary-green);
         color: white;
-        border: none;
-        padding: 14px;
-        border-radius: 12px;
-        font-weight: 700;
-        font-size: 1.1rem;
-        width: 100%;
-        transition: all 0.3s;
-        margin-top: 1rem;
+        padding: 20px;
+        text-align: center;
     }
 
-    .btn-submit:hover {
-        background: #00552b;
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(0, 108, 53, 0.3);
+    .chat-body {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+        background: #f8f9fa;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
     }
 
-    /* رابط العودة */
-    .btn-back {
-        color: #6c757d;
-        text-decoration: none;
-        font-size: 0.9rem;
-        margin-top: 1.5rem;
-        display: inline-block;
-        transition: color 0.2s;
+    /* رسائل الشات */
+    .message {
+        max-width: 80%;
+        padding: 15px;
+        border-radius: 15px;
+        position: relative;
+        animation: fadeIn 0.3s ease;
     }
-    .btn-back:hover { color: #343a40; }
+    
+    .bot-msg {
+        align-self: flex-start;
+        background: white;
+        border-bottom-left-radius: 2px;
+        border: 1px solid #e0e0e0;
+        color: #333;
+    }
+    
+    .user-msg {
+        align-self: flex-end;
+        background: var(--primary-green);
+        color: white;
+        border-bottom-right-radius: 2px;
+    }
 
+    /* منطقة الكتابة */
+    .input-area {
+        padding: 20px;
+        background: white;
+        border-top: 1px solid #eee;
+    }
+
+    /* أزرار التقييم */
+    .feedback-actions {
+        display: none; /* مخفي افتراضياً */
+        justify-content: center;
+        gap: 10px;
+        margin-top: 10px;
+    }
+
+    .loader {
+        display: none;
+        text-align: center;
+        padding: 10px;
+        color: var(--primary-green);
+    }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 </style>
 
-<div class="content-wrapper">
-    <div class="ticket-card animate__animated animate__fadeIn">
-        
-        <div class="card-header-custom">
-            <div class="icon-circle">
-                <i class="fa-solid fa-robot fa-2x"></i>
-            </div>
-            <h3 class="fw-bold font-cairo mb-1">المساعد الذكي</h3>
-            <p class="mb-0 text-white-50 fs-6">نستخدم الذكاء الاصطناعي لتحليل مشكلتك واقتراح الحل فوراً</p>
+<div class="chat-container">
+    <div class="chat-header">
+        <h4 class="m-0 fw-bold"><i class="fa-solid fa-robot me-2"></i> المساعد الذكي</h4>
+        <small>مساعدك الآلي لحل مشاكل أبشر</small>
+    </div>
+
+    <div class="chat-body" id="chatBox">
+        <div class="message bot-msg">
+            <i class="fa-solid fa-headset me-2 text-success"></i>
+            أهلاً بك في دعم أبشر الذكي. كيف يمكنني خدمتك اليوم؟
         </div>
+    </div>
 
-        <div class="card-body p-4 p-md-5">
-            <form method="POST" action="">
-                {% csrf_token %}
-                
-                <div class="mb-4">
-                    <label class="form-label">اسم المستفيد (اختياري)</label>
-                    {{ form.user_name }}
-                </div>
+    <div class="loader" id="loader">
+        <i class="fa-solid fa-circle-notch fa-spin fa-2x"></i>
+        <p class="small">جاري التحليل...</p>
+    </div>
 
-                <div class="mb-4">
-                    <label class="form-label">وصف المشكلة</label>
-                    {{ form.description }}
-                    <div class="form-text mt-2 text-muted">
-                        <i class="fa-solid fa-circle-info me-1"></i>
-                        مثال: "لا أستطيع الدخول للنفاذ الوطني وتظهر رسالة خطأ 403"
-                    </div>
-                </div>
+    <div class="input-area" id="inputSection">
+        <form id="ticketForm" class="d-flex gap-2">
+            {% csrf_token %}
+            <input type="hidden" name="ticket_id" id="ticketId">
+            <input type="text" name="user_name" class="form-control" placeholder="اسمك (اختياري)" style="width: 30%;">
+            <input type="text" name="description" id="descInput" class="form-control" placeholder="اكتب مشكلتك هنا..." required>
+            <button type="submit" class="btn btn-success"><i class="fa-regular fa-paper-plane"></i></button>
+        </form>
 
-                <button type="submit" class="btn btn-submit">
-                    <i class="fa-solid fa-wand-magic-sparkles me-2"></i>
-                    تحليل وإيجاد الحل
-                </button>
-
-                <div class="text-center">
-                    <a href="{% url 'main:home' %}" class="btn-back">
-                        <i class="fa-solid fa-arrow-right me-1"></i> إلغاء والعودة
-                    </a>
-                </div>
-            </form>
+        <div class="feedback-actions" id="feedbackSection">
+            <button onclick="handleFeedback('solved')" class="btn btn-outline-success btn-sm rounded-pill">
+                <i class="fa-solid fa-check"></i> انحلت المشكلة
+            </button>
+            <button onclick="handleFeedback('retry')" class="btn btn-outline-danger btn-sm rounded-pill">
+                <i class="fa-solid fa-rotate-right"></i> لم يعجبني الحل (حاول مرة أخرى)
+            </button>
         </div>
-        
     </div>
 </div>
+
+<script>
+    const form = document.getElementById('ticketForm');
+    const chatBox = document.getElementById('chatBox');
+    const loader = document.getElementById('loader');
+    const feedbackSection = document.getElementById('feedbackSection');
+    const ticketIdInput = document.getElementById('ticketId');
+    const descInput = document.getElementById('descInput');
+    const inputSection = document.getElementById('inputSection');
+
+    // 1. عند إرسال النموذج (لأول مرة)
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(form);
+        const userText = formData.get('description');
+
+        // إضافة رسالة المستخدم للشات
+        addMessage(userText, 'user-msg');
+        
+        // إخفاء الفورم وإظهار اللودر
+        form.style.display = 'none';
+        loader.style.display = 'block';
+
+        // إرسال للباك اند
+        fetch('', {
+            method: 'POST',
+            body: formData,
+            headers: {'X-CSRFToken': '{{ csrf_token }}'}
+        })
+        .then(response => response.json())
+        .then(data => {
+            loader.style.display = 'none';
+            
+            if (data.status === 'success') {
+                ticketIdInput.value = data.ticket_id; // حفظ رقم التذكرة للمتابعة
+                addMessage(data.solution, 'bot-msg');
+                feedbackSection.style.display = 'flex'; // إظهار أزرار التقييم
+            }
+        });
+    });
+
+    // 2. التعامل مع التقييم (إعادة المحاولة)
+    function handleFeedback(action) {
+        if (action === 'solved') {
+            addMessage('سعدنا بخدمتك! تم إغلاق التذكرة.', 'bot-msg');
+            feedbackSection.style.display = 'none';
+            setTimeout(() => location.reload(), 3000); // تحديث الصفحة بعد 3 ثواني
+        } 
+        else if (action === 'retry') {
+            // إضافة رسالة المستخدم
+            addMessage('لم يفدني هذا الحل، حاول مرة أخرى.', 'user-msg');
+            feedbackSection.style.display = 'none';
+            loader.style.display = 'block';
+
+            // إرسال طلب المحاولة للباك اند
+            const formData = new FormData();
+            formData.append('ticket_id', ticketIdInput.value);
+
+            fetch('', {
+                method: 'POST',
+                body: formData,
+                headers: {'X-CSRFToken': '{{ csrf_token }}'}
+            })
+            .then(response => response.json())
+            .then(data => {
+                loader.style.display = 'none';
+
+                if (data.status === 'escalated') {
+                    // السيناريو: وصل 3 محاولات
+                    addMessage(data.message, 'bot-msg');
+                    inputSection.innerHTML = '<div class="alert alert-warning m-3 text-center">تم رفع الطلب للدعم الفني</div>';
+                } else {
+                    // السيناريو: محاولة جديدة
+                    addMessage(data.solution, 'bot-msg');
+                    feedbackSection.style.display = 'flex';
+                }
+            });
+        }
+    }
+
+    // دالة مساعدة لإضافة الرسائل
+    function addMessage(text, className) {
+        const div = document.createElement('div');
+        div.className = `message ${className}`;
+        // تحويل الأسطر الجديدة لـ HTML breaks
+        div.innerHTML = text.replace(/\n/g, '<br>');
+        chatBox.appendChild(div);
+        chatBox.scrollTop = chatBox.scrollHeight; // النزول لآخر رسالة
+    }
+</script>
 {% endblock %}

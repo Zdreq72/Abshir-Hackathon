@@ -1,30 +1,64 @@
-from django.shortcuts import render, redirect
-from .forms import TicketForm
+from django.shortcuts import render
+from django.http import JsonResponse
 from .models import Ticket
+from .ai_utils import get_absher_solution # تأكد أن هذا الملف موجود وفيه مفتاح API
 
 def submit_ticket(request):
     if request.method == 'POST':
-        form = TicketForm(request.POST)
-        if form.is_valid():
-            ticket = form.save(commit=False)
+        # 1. هل هذا طلب جديد أم إعادة محاولة؟
+        ticket_id = request.POST.get('ticket_id')
+        
+        if ticket_id:
+            # --- سيناريو إعادة المحاولة (المستخدم لم يعجبه الحل) ---
+            ticket = Ticket.objects.get(id=ticket_id)
+            ticket.retry_count += 1
             
-            # إعدادات تلقائية لا يراها المستخدم
-            ticket.source = 'ABSHER'  # نحدد المصدر أنه من البوابة
-            ticket.status = 'NEW'     # الحالة مبدئياً جديد
+            if ticket.retry_count >= 3:
+                # إذا وصل 3 محاولات -> تصعيد للموظف
+                ticket.status = 'ESCALATED'
+                ticket.save()
+                return JsonResponse({
+                    'status': 'escalated',
+                    'message': 'نعتذر منك. تم رفع تذكرتك للموظف المختص نظراً لتكرار المحاولة، سيتم التواصل معك قريباً.'
+                })
+            else:
+                # محاولة جديدة مع الـ AI (ربما يعطي إجابة مختلفة أو نطلب توضيح)
+                # للتبسيط هنا: سنرسل نفس الحل أو نطلب صياغة أفضل، 
+                # لكن الأفضل في الـ Production نرسل الـ History لـ Gemini.
+                new_solution = get_absher_solution(ticket.description + " (محاولة ثانية، الحل السابق لم يكن مفيداً)")
+                ticket.suggested_solution = new_solution
+                ticket.save()
+                
+                return JsonResponse({
+                    'status': 'retry',
+                    'solution': new_solution,
+                    'retry_count': ticket.retry_count,
+                    'remaining': 3 - ticket.retry_count
+                })
+
+        else:
+            # --- سيناريو طلب جديد (أول مرة) ---
+            user_name = request.POST.get('user_name')
+            description = request.POST.get('description')
             
-            # --- هنا سنضع كود استدعاء الـ AI لاحقاً ---
-            # call_ai_engine(ticket)
+            # إنشاء التذكرة
+            ticket = Ticket.objects.create(
+                user_name=user_name,
+                description=description,
+                source='ABSHER',
+                status='AI_PROCESSED'
+            )
             
+            # استدعاء Gemini
+            solution = get_absher_solution(description)
+            ticket.suggested_solution = solution
             ticket.save()
-            return render(request, 'main/success.html') # صفحة شكر
-    else:
-        form = TicketForm()
-    
-    return render(request, 'main/submit_ticket.html', {'form': form})
+            
+            return JsonResponse({
+                'status': 'success',
+                'ticket_id': ticket.id,
+                'solution': solution
+            })
 
-
-# backend/main/views.py
-
-def success_page_view(request):
-    return render(request, 'main/success.html')
-
+    # طلب GET عادي (فتح الصفحة)
+    return render(request, 'main/submit_ticket.html')
