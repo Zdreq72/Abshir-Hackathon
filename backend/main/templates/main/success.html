@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5 pt-5 text-center">
+    <div class="card shadow p-5 mx-auto border-0 rounded-4" style="max-width: 600px;">
+        <div class="card-body">
+            <div class="mb-4">
+                <i class="fa-solid fa-robot fa-4x text-success mb-3 fa-bounce"></i>
+            </div>
+            <h2 class="fw-bold mb-3" style="color: #006c35;">تم استلام طلبك!</h2>
+            <p class="text-secondary fs-5 mb-4">
+                يقوم مساعدنا الذكي بتحليل مشكلتك الآن...
+                <br>
+                سيتم توجيهك للحل المقترح خلال لحظات.
+            </p>
+            <div class="spinner-border text-success" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            
+            <div class="mt-4">
+                <a href="{% url 'main:home' %}" class="btn btn-outline-success px-4 rounded-pill">العودة للرئيسية</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

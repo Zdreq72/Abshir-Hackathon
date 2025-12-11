@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    /* تنسيق الخلفية لتكون متناسقة */
+    .content-wrapper {
+        background-color: #f8f9fa;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+    }
+
+    /* بطاقة الفورم */
+    .ticket-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        border: none;
+        width: 100%;
+        max-width: 600px; /* عرض مثالي حتى لا تكون عريضة جداً */
+        transform: translateY(-20px); /* رفعة بسيطة للأعلى */
+    }
+
+    /* رأس البطاقة - تصميم أبشر الحديث */
+    .card-header-custom {
+        background: linear-gradient(135deg, #006c35 0%, #004d26 100%);
+        padding: 3rem 2rem;
+        text-align: center;
+        color: white;
+        position: relative;
+    }
+
+    /* الدائرة خلف الأيقونة */
+    .icon-circle {
+        background: rgba(255, 255, 255, 0.15);
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        backdrop-filter: blur(5px);
+    }
+
+    /* تحسين حقول الإدخال */
+    .form-control {
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        padding: 12px 15px;
+        transition: all 0.3s;
+        background-color: #fdfdfd;
+    }
+
+    .form-control:focus {
+        border-color: #006c35;
+        box-shadow: 0 0 0 4px rgba(0, 108, 53, 0.1);
+        background-color: #fff;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 8px;
+    }
+
+    /* زر الإرسال */
+    .btn-submit {
+        background: #006c35;
+        color: white;
+        border: none;
+        padding: 14px;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 1.1rem;
+        width: 100%;
+        transition: all 0.3s;
+        margin-top: 1rem;
+    }
+
+    .btn-submit:hover {
+        background: #00552b;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 108, 53, 0.3);
+    }
+
+    /* رابط العودة */
+    .btn-back {
+        color: #6c757d;
+        text-decoration: none;
+        font-size: 0.9rem;
+        margin-top: 1.5rem;
+        display: inline-block;
+        transition: color 0.2s;
+    }
+    .btn-back:hover { color: #343a40; }
+
+</style>
+
+<div class="content-wrapper">
+    <div class="ticket-card animate__animated animate__fadeIn">
+        
+        <div class="card-header-custom">
+            <div class="icon-circle">
+                <i class="fa-solid fa-robot fa-2x"></i>
+            </div>
+            <h3 class="fw-bold font-cairo mb-1">المساعد الذكي</h3>
+            <p class="mb-0 text-white-50 fs-6">نستخدم الذكاء الاصطناعي لتحليل مشكلتك واقتراح الحل فوراً</p>
+        </div>
+
+        <div class="card-body p-4 p-md-5">
+            <form method="POST" action="">
+                {% csrf_token %}
+                
+                <div class="mb-4">
+                    <label class="form-label">اسم المستفيد (اختياري)</label>
+                    {{ form.user_name }}
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">وصف المشكلة</label>
+                    {{ form.description }}
+                    <div class="form-text mt-2 text-muted">
+                        <i class="fa-solid fa-circle-info me-1"></i>
+                        مثال: "لا أستطيع الدخول للنفاذ الوطني وتظهر رسالة خطأ 403"
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-submit">
+                    <i class="fa-solid fa-wand-magic-sparkles me-2"></i>
+                    تحليل وإيجاد الحل
+                </button>
+
+                <div class="text-center">
+                    <a href="{% url 'main:home' %}" class="btn-back">
+                        <i class="fa-solid fa-arrow-right me-1"></i> إلغاء والعودة
+                    </a>
+                </div>
+            </form>
+        </div>
+        
+    </div>
+</div>
+{% endblock %}
