@@ -1,24 +1,76 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block content %}
-<div class="container mt-5 pt-5 text-center">
-    <div class="card shadow p-5 mx-auto border-0 rounded-4" style="max-width: 600px;">
-        <div class="card-body">
-            <div class="mb-4">
-                <i class="fa-solid fa-robot fa-4x text-success mb-3 fa-bounce"></i>
-            </div>
-            <h2 class="fw-bold mb-3" style="color: #006c35;">تم استلام طلبك!</h2>
-            <p class="text-secondary fs-5 mb-4">
-                يقوم مساعدنا الذكي بتحليل مشكلتك الآن...
-                <br>
-                سيتم توجيهك للحل المقترح خلال لحظات.
-            </p>
-            <div class="spinner-border text-success" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
-            
-            <div class="mt-4">
-                <a href="{% url 'main:home' %}" class="btn btn-outline-success px-4 rounded-pill">العودة للرئيسية</a>
+<style>
+    .result-card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        background: #fff;
+        margin-top: 3rem;
+        overflow: hidden;
+    }
+    .result-header {
+        background-color: #006c35;
+        color: white;
+        padding: 2rem;
+        text-align: center;
+    }
+    .solution-box {
+        background-color: #f0f9f4;
+        border-right: 4px solid #006c35;
+        padding: 20px;
+        border-radius: 8px;
+        margin-top: 20px;
+        line-height: 1.8;
+        color: #333;
+    }
+</style>
+
+<div class="container mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card result-card animate__animated animate__fadeIn">
+                
+                <div class="result-header">
+                    <i class="fa-solid fa-check-circle fa-4x mb-3"></i>
+                    <h2 class="fw-bold">تم تحليل مشكلتك بنجاح</h2>
+                    <p class="mb-0">رقم التذكرة: #{{ ticket.id }}</p>
+                </div>
+
+                <div class="card-body p-5">
+                    
+                    <h5 class="text-muted fw-bold mb-2">مشكلتك:</h5>
+                    <p class="lead text-dark mb-4">{{ ticket.description }}</p>
+
+                    <hr>
+
+                    <h4 class="fw-bold text-success mt-4">
+                        <i class="fa-solid fa-wand-magic-sparkles me-2"></i> الحل المقترح من المساعد الذكي:
+                    </h4>
+                    
+                    <div class="solution-box">
+                        {{ ticket.suggested_solution|linebreaks }}
+                    </div>
+
+                    <div class="mt-5 text-center">
+                        <p class="text-muted mb-3">هل كان هذا الحل مفيداً؟</p>
+                        <div class="d-flex justify-content-center gap-3">
+                            <button class="btn btn-outline-success px-4 rounded-pill">
+                                <i class="fa-regular fa-thumbs-up me-2"></i> نعم، تم الحل
+                            </button>
+                            <button class="btn btn-outline-danger px-4 rounded-pill">
+                                <i class="fa-regular fa-thumbs-down me-2"></i> لا، ارفع الطلب للموظف
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center mt-4">
+                        <a href="{% url 'main:submit_ticket' %}" class="text-secondary text-decoration-none">عودة للرئيسية</a>
+                    </div>
+
+                </div>
             </div>
         </div>
     </div>
